@@ -1,0 +1,8 @@
+name: 'Entity Delete Log'
+type: module
+description: 'Saves custom log entry to database when an entity is deleted.'
+core: 8.x
+package: Other
+dependencies:
+  - views
+configure: entity_delete_log.settings

@@ -1,0 +1,79 @@
+<?php
+
+/**
+ * @file .install file for entity_delete_log module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function entity_delete_log_schema() {
+  $schema['entity_delete_log'] = [
+    'description' => 'The base table for the entity_delete_log module.',
+    'fields' => [
+      'entity_delete_log_id' => [
+        'description' => 'The primary identifier for an entity delete log entry.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'entity_id' => [
+        'description' => 'The entity id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'entity_type' => [
+        'description' => 'The entity type.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ],
+      'entity_bundle' => [
+        'description' => 'The entity bundle.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => FALSE,
+        'default' => NULL,
+      ],
+      'entity_title' => [
+        'description' => 'The entity title.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ],
+      'author' => [
+        'description' => 'The entity author user id.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ],
+      'revisions' => [
+        'description' => 'The entity revision count, if available.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default' => NULL,
+      ],
+      'created' => [
+        'description' => 'The unix timestamp when the entity was created, if available.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ],
+      'deleted' => [
+        'description' => 'The unix timestamp when the entity was deleted.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'uid' => [
+        'description' => 'The acting user id.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ],
+    ],
+    'primary key' => ['entity_delete_log_id'],
+  ];
+  return $schema;
+}
