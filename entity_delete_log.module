@@ -1,0 +1,151 @@
+<?php
+
+/**
+ * @file
+ * Saves custom log entry to database when an entity is deleted.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+
+/**
+ * Implements hook_entity_delete().
+ */
+function entity_delete_log_entity_delete(EntityInterface $entity) {
+
+  $entity_type = $entity->getEntityType();
+  $type = $entity_type->id();
+  // Grab the entity types chosen for logging.
+  $config = \Drupal::config('entity_delete_log.settings');
+  $entity_types = ($config->get('entity_types')) ? $config->get('entity_types') : [];
+
+  // If the incoming entity type is enabled for logging, let's log it.
+  if (in_array($type, $entity_types, TRUE)) {
+
+    // Let's set up the variables and their values to insert.
+    $variables = [];
+
+    // The user id.
+    $variables['uid'] = \Drupal::currentUser()->id;
+
+    // Grab the entity id and bundle (we don't care about the vid).
+    $variables['entity_id'] = $entity->id();
+    $variables['entity_bundle'] = $entity->bundle();
+
+    // The entity type is the same as the incoming type.
+    $variables['entity_type'] = $type;
+
+    // If there is an entity user id, we'll use that as the author, otherwise
+    // we'll just use user #1. We don't want to use the deleted user's entity id
+    // as the author, since they will lo longer exist, so we'll just use #1.
+    $variables['author'] = 1;
+    if (isset($entity->uid) && $type != 'user') {
+      $variables['author'] = $entity->uid->entity->id();
+    }
+
+    // If there is an entity created date, we'll use it, otherwise we'll use null.
+    $variables['created'] = NULL;
+    if (isset($entity->created)) {
+      $variables['created'] = $entity->created->value;
+    }
+
+    // We'll set the deleted time to right now.
+    $variables['deleted'] = time();
+
+    // Entity title.
+    $variables['entity_title'] = $entity->label();
+
+    // Entity revisions.
+    $variables['revisions'] = NULL;
+    if ($entity_type->isRevisionable()) {
+      $variables['revisions'] = \Drupal::entityQuery($type)
+        ->condition($entity_type->getKey('id'), $entity->id())
+        ->allRevisions()
+        ->count()
+        ->execute();
+    }
+
+    // Give other modules an opportunity via hook_entity_delete_log_alter() to
+    // make any changes to the log data variables before insertion.
+    if (count(\Drupal::moduleHandler()->getImplementations('entity_delete_log_alter')) > 0) {
+      $variables = \Drupal::moduleHandler()->invokeAll('entity_delete_log_alter',
+        [$entity, $type, $variables]);
+    }
+
+    // If nobody could determine a title, let's just use 'N/A'.
+    if (!isset($variables['entity_title'])) {
+      $variables['entity_title'] = t('N/A');
+    }
+
+    // Make sure the required variables have been provided, otherwise don't
+    // insert anything and throw a warning. We don't need to check the
+    // entity_title since it will have been set above.
+    $proceed = TRUE;
+    $msgs = get_failure_messages($variables);
+    if (count($msgs)) {
+      $proceed = FALSE;
+    }
+
+    // If we are ready to proceed, insert the log entry data, otherwise show
+    // the warning(s) in a message.
+    if (!$proceed) {
+      $list = [
+        '#theme' => 'item_list',
+        '#items' => $msgs,
+      ];
+      drupal_set_message(
+        t('Entity Delete Log Failed!') . render($list),
+        'warning'
+      );
+    }
+    else {
+      log_entity_deletion($variables);
+      // Now that we've logged this entity's deletion, let's let others do any
+      // extra stuff they need with hook_entity_delete_log_post_process().
+      \Drupal::moduleHandler()->invokeAll('entity_delete_log_post_process', [
+        $entity, $type, $variables,
+      ]);
+    }
+  }
+}
+
+/**
+ * Log the entity's deletion.
+ */
+function get_failure_messages($variables) {
+  $msgs = [];
+  if (!isset($variables['entity_id'])) {
+    $msgs[] = t('Missing Entity ID');
+  }
+  if (!isset($variables['entity_type'])) {
+    $msgs[] = t('Missing Entity Type');
+  }
+  if (!isset($variables['author'])) {
+    $msgs[] = t('Missing Entity Author');
+  }
+  if (!isset($variables['deleted'])) {
+    $msgs[] = t('Missing Entity Deleted Time');
+  }
+  if (!isset($variables['uid'])) {
+    $msgs[] = t('Missing Acting User ID');
+  }
+  retrun $msgs;
+}
+
+/**
+ * Log the entity's deletion.
+ */
+function log_entity_deletion(&$variables) {
+  $variables['entity_delete_log_id'] = \Drupal::database()->insert('entity_delete_log')
+    ->fields([
+      'entity_id' => $variables['entity_id'],
+      'entity_type' => $variables['entity_type'],
+      'entity_bundle' => $variables['entity_bundle'],
+      'entity_title' => $variables['entity_title'],
+      'author' => $variables['author'],
+      'revisions' => $variables['revisions'],
+      'created' => $variables['created'],
+      'deleted' => $variables['deleted'],
+      'uid' => $variables['uid'],
+    ])
+    ->execute();
+}
