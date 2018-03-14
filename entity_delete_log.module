@@ -8,13 +8,44 @@
 use Drupal\Core\Entity\EntityInterface;
 
 /**
+ * Implements hook_entity_predelete().
+ */
+function entity_delete_log_entity_predelete(EntityInterface $entity) {
+  $entity_type = $entity->getEntityType();
+  // Get the entity type.
+  $type = $entity_type->id();
+
+  // Fetch the module settings.
+  $settings = \Drupal::config('entity_delete_log.settings');
+  $entity_types = ($settings->get('entity_types')) ? $settings->get('entity_types') : [];
+
+  // Check if incoming entity type is enabled for logging.
+  if (in_array($type, $entity_types, TRUE)) {
+    if ($entity_type->isRevisionable()) {
+
+      // Get the number of revisions for the entity.
+      $revisions = \Drupal::entityQuery($type)
+        ->condition($entity_type->getKey('id'), $entity->id())
+        ->allRevisions()
+        ->count()
+        ->execute();
+
+      // Store the number of revision of the entity in cache.
+      // It will be deleted after the log opration.
+      \Drupal::state()->set($type . ':revisions:' . $entity->id(), $revisions);
+    }
+  }
+}
+
+/**
  * Implements hook_entity_delete().
  */
 function entity_delete_log_entity_delete(EntityInterface $entity) {
-
   $entity_type = $entity->getEntityType();
-  $type = $entity_type->id();
   // Grab the entity types chosen for logging.
+  $type = $entity_type->id();
+
+  // Get the module configuration.
   $config = \Drupal::config('entity_delete_log.settings');
   $entity_types = ($config->get('entity_types')) ? $config->get('entity_types') : [];
 
@@ -25,7 +56,7 @@ function entity_delete_log_entity_delete(EntityInterface $entity) {
     $variables = [];
 
     // The user id.
-    $variables['uid'] = \Drupal::currentUser()->id;
+    $variables['uid'] = \Drupal::currentUser()->id();
 
     // Grab the entity id and bundle (we don't care about the vid).
     $variables['entity_id'] = $entity->id();
@@ -54,14 +85,14 @@ function entity_delete_log_entity_delete(EntityInterface $entity) {
     // Entity title.
     $variables['entity_title'] = $entity->label();
 
-    // Entity revisions.
+    // Set entity revisions.
     $variables['revisions'] = NULL;
     if ($entity_type->isRevisionable()) {
-      $variables['revisions'] = \Drupal::entityQuery($type)
-        ->condition($entity_type->getKey('id'), $entity->id())
-        ->allRevisions()
-        ->count()
-        ->execute();
+      $revisions = \Drupal::state()->get($type . ':revisions:' . $entity->id());
+      if ($revisions) {
+        $variables['revisions'] = $revisions;
+        \Drupal::state()->delete($type . ':revisions:' . $entity->id());
+      }
     }
 
     // Give other modules an opportunity via hook_entity_delete_log_alter() to
