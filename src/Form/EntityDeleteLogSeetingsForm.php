@@ -2,6 +2,7 @@
 
 namespace Drupal\entity_delete_log\Form;
 
+use Drupal\Core\Entity\ContentEntityType;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -41,7 +42,7 @@ class EntityDeleteLogSeetingsForm extends ConfigFormBase {
   }
 
   /**
-   *
+   * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
     return new static(
@@ -85,9 +86,10 @@ class EntityDeleteLogSeetingsForm extends ConfigFormBase {
     ];
     $form['#prefix'] = $this->renderer->render($list);
 
-    // Provide a list of checkboxes for the user to choose which entity types will have delete logging enabled.
-    $entity_definitions = array_filter($this->entityTypeManager->getDefinitions(), function($definition){
-      return($definition instanceof \Drupal\Core\Entity\ContentEntityType) ? TRUE : FALSE;
+    // Provide a list of checkboxes for the user to choose which entity
+    // types will have delete logging enabled.
+    $entity_definitions = array_filter($this->entityTypeManager->getDefinitions(), function ($definition) {
+      return ($definition instanceof ContentEntityType) ? TRUE : FALSE;
     });
     $entity_keys = array_keys($entity_definitions);
     $entity_labels = array_map(function ($definition) {
@@ -103,13 +105,6 @@ class EntityDeleteLogSeetingsForm extends ConfigFormBase {
     ];
 
     return parent::buildForm($form, $form_state);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function validateForm(array &$form, FormStateInterface $form_state) {
-    parent::validateForm($form, $form_state);
   }
 
   /**

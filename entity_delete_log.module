@@ -128,7 +128,7 @@ function get_failure_messages($variables) {
   if (!isset($variables['uid'])) {
     $msgs[] = t('Missing Acting User ID');
   }
-  retrun $msgs;
+  return $msgs;
 }
 
 /**
