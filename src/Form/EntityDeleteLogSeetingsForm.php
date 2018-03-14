@@ -86,7 +86,9 @@ class EntityDeleteLogSeetingsForm extends ConfigFormBase {
     $form['#prefix'] = $this->renderer->render($list);
 
     // Provide a list of checkboxes for the user to choose which entity types will have delete logging enabled.
-    $entity_definitions = $this->entityTypeManager->getDefinitions();
+    $entity_definitions = array_filter($this->entityTypeManager->getDefinitions(), function($definition){
+      return($definition instanceof \Drupal\Core\Entity\ContentEntityType) ? TRUE : FALSE;
+    });
     $entity_keys = array_keys($entity_definitions);
     $entity_labels = array_map(function ($definition) {
       return $definition->getLabel()->render();
