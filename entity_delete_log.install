@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @file .install file for entity_delete_log module.
+ * @file
+ * Install file for entity_delete_log module.
  */
 
 /**
