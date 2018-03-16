@@ -83,7 +83,7 @@ function entity_delete_log_views_data() {
     'title' => t('Author'),
     'help' => t("The User ID of the entity's author"),
     'field' => [
-      'id' => 'user_data',
+      'id' => 'standard',
     ],
     'relationship' => [
       'title' => t('Author User Account'),
@@ -148,7 +148,7 @@ function entity_delete_log_views_data() {
     'title' => t('User ID'),
     'help' => t('The user ID of the account that deleted the entity'),
     'field' => [
-      'id' => 'user_data',
+      'id' => 'standard',
     ],
     'relationship' => [
       'title' => t('Acting User Account'),
