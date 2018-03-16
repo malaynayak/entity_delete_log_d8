@@ -15,11 +15,10 @@ function entity_delete_log_entity_predelete(EntityInterface $entity) {
   // Get the entity type.
   $type = $entity_type->id();
 
-  // Fetch the module settings.
-  $settings = \Drupal::config('entity_delete_log.settings');
-  $entity_types = ($settings->get('entity_types')) ? $settings->get('entity_types') : [];
+  // Fetch the configured entities for logging.
+  $entity_types = get_configured_entity_types();
 
-  // Check if incoming entity type is enabled for logging.
+  // Check if the incoming entity type is enabled for logging.
   if (in_array($type, $entity_types, TRUE)) {
     if ($entity_type->isRevisionable()) {
 
@@ -45,9 +44,8 @@ function entity_delete_log_entity_delete(EntityInterface $entity) {
   // Grab the entity types chosen for logging.
   $type = $entity_type->id();
 
-  // Get the module configuration.
-  $config = \Drupal::config('entity_delete_log.settings');
-  $entity_types = ($config->get('entity_types')) ? $config->get('entity_types') : [];
+  // Fetch the configured entities for logging.
+  $entity_types = get_configured_entity_types();
 
   // If the incoming entity type is enabled for logging, let's log it.
   if (in_array($type, $entity_types, TRUE)) {
@@ -73,7 +71,7 @@ function entity_delete_log_entity_delete(EntityInterface $entity) {
       $variables['author'] = $entity->uid->entity->id();
     }
 
-    // If there is an entity created date, we'll use it, otherwise we'll use null.
+    // If there is an entity created date, use it, otherwise use null.
     $variables['created'] = NULL;
     if (isset($entity->created)) {
       $variables['created'] = $entity->created->value;
@@ -140,7 +138,15 @@ function entity_delete_log_entity_delete(EntityInterface $entity) {
 }
 
 /**
- * Log the entity's deletion.
+ * To get entity types configured for logging.
+ */
+function get_configured_entity_types() {
+  $settings = \Drupal::config('entity_delete_log.settings');
+  return ($settings->get('entity_types')) ? $settings->get('entity_types') : [];
+}
+
+/**
+ * To get the failure message, when the logging fails.
  */
 function get_failure_messages($variables) {
   $msgs = [];
