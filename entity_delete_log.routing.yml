@@ -1,7 +1,7 @@
 entity_delete_log.settings:
   path: '/admin/config/entity-delete-log'
   defaults:
-    _title: 'Entity Delete Log'
+    _title: 'Entity Delete Log - Settings'
     _form: '\Drupal\entity_delete_log\Form\EntityDeleteLogSeetingsForm'
   requirements:
     _permission: 'administer site configuration'

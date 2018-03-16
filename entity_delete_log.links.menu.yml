@@ -1,0 +1,5 @@
+entity_delete_log.settings:
+  title: 'Entity Delete Log'
+  route_name: entity_delete_log.settings
+  parent: system.admin_config
+  description: 'Select which entity types will be logged when deleted.'
