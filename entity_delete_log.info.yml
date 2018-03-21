@@ -4,5 +4,5 @@ description: 'Saves custom log entry to database when an entity is deleted.'
 core: 8.x
 package: Other
 dependencies:
-  - drupal: views
+  - drupal:views
 configure: entity_delete_log.settings
