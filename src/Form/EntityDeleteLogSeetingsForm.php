@@ -76,7 +76,7 @@ class EntityDeleteLogSeetingsForm extends ConfigFormBase {
     // Add some helpful links.
     $help_links = [
       Link::fromTextAndUrl('View the Entity Delete Log README',
-          Url::fromUserInput('/' . drupal_get_path('module', 'entity_delete_log') . '/README.txt')),
+          Url::fromUserInput('/' . \Drupal::service('extension.path.resolver')->getPath('module', 'entity_delete_log') . '/README.txt')),
       Link::fromTextAndUrl('View the Entity Delete Logs',
           Url::fromUserInput('/admin/reports/entity-delete-log')),
     ];
