@@ -10,11 +10,12 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Render\Renderer;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
+use Drupal\Core\Extension\ExtensionPathResolver;
 
 /**
- * Class EntityDeleteLogSeetingsForm.
+ * Class EntityDeleteLogSettingsForm.
  */
-class EntityDeleteLogSeetingsForm extends ConfigFormBase {
+class EntityDeleteLogSettingsForm extends ConfigFormBase {
 
   /**
    * Drupal\Core\Entity\EntityTypeManagerInterface definition.
@@ -31,14 +32,23 @@ class EntityDeleteLogSeetingsForm extends ConfigFormBase {
   protected $renderer;
 
   /**
-   * Constructs a new EntityDeleteLogSeetingsForm object.
+   * Drupal\Core\Extension\ExtensionPathResolver definition.
+   *
+   * @var Drupal\Core\Extension\ExtensionPathResolver
+   */
+  protected $extensionPathResolver;
+
+  /**
+   * Constructs a new EntityDeleteLogSettingsForm object.
    */
   public function __construct(
     EntityTypeManagerInterface $entity_type_manager,
-    Renderer $renderer
+    Renderer $renderer,
+    ExtensionPathResolver $extensionPathResolver
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->renderer = $renderer;
+    $this->extensionPathResolver = $extensionPathResolver;
   }
 
   /**
@@ -47,7 +57,8 @@ class EntityDeleteLogSeetingsForm extends ConfigFormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('entity_type.manager'),
-      $container->get('renderer')
+      $container->get('renderer'),
+      $container->get('extension.path.resolver')
     );
   }
 
@@ -55,7 +66,7 @@ class EntityDeleteLogSeetingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function getFormId() {
-    return 'entity_delete_log_seetings_form';
+    return 'entity_delete_log_settings_form';
   }
 
   /**
@@ -76,7 +87,7 @@ class EntityDeleteLogSeetingsForm extends ConfigFormBase {
     // Add some helpful links.
     $help_links = [
       Link::fromTextAndUrl('View the Entity Delete Log README',
-          Url::fromUserInput('/' . drupal_get_path('module', 'entity_delete_log') . '/README.txt')),
+          Url::fromUserInput('/' . $this->extensionPathResolver->getPath('module', 'entity_delete_log') . '/README.txt')),
       Link::fromTextAndUrl('View the Entity Delete Logs',
           Url::fromUserInput('/admin/reports/entity-delete-log')),
     ];

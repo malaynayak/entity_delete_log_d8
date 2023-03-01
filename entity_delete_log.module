@@ -95,7 +95,8 @@ function entity_delete_log_entity_delete(EntityInterface $entity) {
 
     // Give other modules an opportunity via hook_entity_delete_log_alter() to
     // make any changes to the log data variables before insertion.
-    if (count(\Drupal::moduleHandler()->getImplementations('entity_delete_log_alter')) > 0) {
+
+    if (\Drupal::moduleHandler()->hasImplementations('entity_delete_log_alter')) {
       $variables = \Drupal::moduleHandler()->invokeAll('entity_delete_log_alter',
         [$entity, $type, $variables]);
     }
@@ -121,8 +122,8 @@ function entity_delete_log_entity_delete(EntityInterface $entity) {
         '#theme' => 'item_list',
         '#items' => $msgs,
       ];
-      drupal_set_message(
-        t('Entity Delete Log Failed!') . render($list),
+      \Drupal::messenger()->addMessage(
+        t('Entity Delete Log Failed!') .  \Drupal::service('renderer')->render($list),
         'warning'
       );
     }
